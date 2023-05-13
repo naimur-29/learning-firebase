@@ -15,6 +15,14 @@ import {
   updateDoc,
 } from "firebase/firestore";
 
+import {
+  getAuth,
+  createUserWithEmailAndPassword,
+  signOut,
+  signInWithEmailAndPassword,
+  onAuthStateChanged,
+} from "firebase/auth";
+
 const firebaseConfig = {
   apiKey: "AIzaSyBc3KCC4IA9DjGTi71pFVjcBMkhFfi8Km0",
   authDomain: "fir-9-dojo-19bfa.firebaseapp.com",
@@ -29,6 +37,7 @@ initializeApp(firebaseConfig);
 
 // init services:
 const db = getFirestore();
+const auth = getAuth();
 
 // collection reference:
 const collRefBooks = collection(db, "books");
@@ -47,7 +56,7 @@ onSnapshot(qry, (snapshot) => {
     books.push({ ...doc.data(), id: doc.id });
   });
 
-  console.log(books);
+  // console.log(books);
 
   booksList.textContent = books.length ? "" : "Empty!";
 
@@ -143,4 +152,52 @@ updateBookForm.addEventListener("submit", (e) => {
   } else {
     alert("Fill Up All The Required Fields To Update!");
   }
+});
+
+// firebase authentication with email/password:
+// singing users up:
+const signupForm = document.querySelector(".signup-form");
+signupForm.addEventListener("submit", (e) => {
+  e.preventDefault();
+
+  const email = signupForm.email.value;
+  const password = signupForm.password.value;
+
+  createUserWithEmailAndPassword(auth, email, password)
+    .then((userCred) => {
+      signupForm.reset();
+    })
+    .error((err) => {
+      console.log(err.message);
+    });
+});
+
+// user logout:
+const logoutBtn = document.querySelector(".btn.logout");
+logoutBtn.addEventListener("click", () => {
+  signOut(auth).catch((err) => {
+    console.log(err.message);
+  });
+});
+
+// user login:
+const loginForm = document.querySelector(".login-form");
+loginForm.addEventListener("submit", (e) => {
+  e.preventDefault();
+
+  const email = loginForm.email.value;
+  const password = loginForm.password.value;
+
+  signInWithEmailAndPassword(auth, email, password)
+    .then((userCred) => {
+      loginForm.reset();
+    })
+    .catch((err) => {
+      console.log(err.message);
+    });
+});
+
+// subscribing to auth changes:
+onAuthStateChanged(auth, (user) => {
+  console.log("user status changed!", user);
 });
